@@ -1,9 +1,12 @@
+/*** MARK: includes ***/
 #include <stdlib.h>
 #include <termios.h>
 #include <unistd.h>
 
+/*** MARK: data ***/
 struct termios orig_termios;
 
+/*** MARK: terminal ***/
 void disableRawMode() {
   tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios);
 }
@@ -18,6 +21,7 @@ void enableRawMode() {
   tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
 }
 
+/*** MARK: init ***/
 int main() {
   enableRawMode();
 
