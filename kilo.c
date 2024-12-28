@@ -41,8 +41,8 @@ void enableRawMode(void) {
 char editorReadKey(void) {
   int nread;
   char c;
-  while((nread = read(STDIN_FILENO, &c, 1)) != 1){
-    if(nread == -1 && errno != EAGAIN) die("read");
+  while ((nread = read(STDIN_FILENO, &c, 1)) != 1) {
+    if (nread == -1 && errno != EAGAIN) die("read");
   }
   return c;
 }
@@ -51,7 +51,7 @@ char editorReadKey(void) {
 void editorProcessKeypress(void) {
   char c = editorReadKey();
 
-  switch(c) {
+  switch (c) {
     case CTRL_KEY('q'):
       exit(0);
       break;
