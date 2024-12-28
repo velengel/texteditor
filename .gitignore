@@ -54,3 +54,4 @@ dkms.conf
 kilo
 .vscode
 myenv
+*.patch
