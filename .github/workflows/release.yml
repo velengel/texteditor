@@ -37,20 +37,23 @@ jobs:
           fi
           echo "release_tag=$today-$(($pre_release_count + 1))" >> $GITHUB_OUTPUT
 
-      # PRのタイトルを取得
-      - name: Get pr title
+      # PRのタイトルと番号を取得
+      - name: Get pr title and number
         id: pr_title
         run: |
-          echo "pr_title=$(curl -H 'Authorization: Bearer ${{ secrets.GH_TOKEN }}' \
-            'https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number}}' \
-            | jq .title)" >> $GITHUB_OUTPUT
+          pr_title=$(curl -H 'Authorization: Bearer ${{ secrets.GH_TOKEN }}' \
+            "https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number}}" \
+            | jq -r '.title')
+          pr_number=${{ github.event.pull_request.number }}
+          formatted_pr_title="${pr_title} (#${pr_number})"
+          echo "formatted_pr_title=${formatted_pr_title}" >> $GITHUB_OUTPUT
 
-      # リリースノートの本文を作成する
+      # リリースノートの本文を作成
       - name: Create release note body
         id: release_note_body
         run: |
           echo "release_note_body=$(echo \
-            ${{ steps.pr_title.outputs.pr_title }} \
+            ${{ steps.pr_title.outputs.formatted_pr_title }} \
             ${{ steps.changes.outputs.changes }} \
             | sed 's/\\"//g' | sed 's/["“]//g')" >> $GITHUB_OUTPUT
 
