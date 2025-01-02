@@ -37,38 +37,23 @@ jobs:
           fi
           echo "release_tag=$today-$(($pre_release_count + 1))" >> $GITHUB_OUTPUT
 
-      # PRのDescriptionを取得しマークダウン形式に変換する
-      - name: Get pr description
-        id: pr_description
+      # PRのタイトルを取得
+      - name: Get pr title
+        id: pr_title
         run: |
-          echo "pr_description=$(curl -H 'Authorization: Bearer ${{ secrets.GH_TOKEN }}' \
+          echo "pr_title=$(curl -H 'Authorization: Bearer ${{ secrets.GH_TOKEN }}' \
             'https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number}}' \
-            | jq .body | awk '{if ($0 == "null") print ""; else print}')" >> $GITHUB_OUTPUT
-
-      # 前回リリースからの差分をもとに、変更点を取得する
-      - name: Generate release note changes
-        id: changes
-        run: |
-          echo "changes=$(
-          curl -X POST \
-            -H 'Accept: application/vnd.github.v3+json' \
-            -H 'Authorization: token ${{ secrets.GH_TOKEN }}' \
-            https://api.github.com/repos/${{ github.repository }}/releases/generate-notes \
-            -d '{
-              "tag_name": "${{ steps.release_tag.outputs.release_tag }}",
-              "previous_tag_name": "${{ steps.pre_tag.outputs.pre_tag }}",
-              "target_commitish": "main"
-            }' | jq .body
-          )" >> $GITHUB_OUTPUT
+            | jq .title)" >> $GITHUB_OUTPUT
 
       # リリースノートの本文を作成する
       - name: Create release note body
         id: release_note_body
         run: |
           echo "release_note_body=$(echo \
-            ${{ steps.pr_description.outputs.pr_description }} \
+            ${{ steps.pr_title.outputs.pr_title }} \
             ${{ steps.changes.outputs.changes }} \
             | sed 's/\\"//g' | sed 's/["“]//g')" >> $GITHUB_OUTPUT
+
 
       # タグを切り、リリースノートを作成する
       # PRのラベルに応じてカテゴライズする場合は、使用先のリポジトリで下記を定義する
