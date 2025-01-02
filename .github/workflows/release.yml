@@ -48,15 +48,13 @@ jobs:
           formatted_pr_title="${pr_title} (#${pr_number})"
           echo "formatted_pr_title=${formatted_pr_title}" >> $GITHUB_OUTPUT
 
-      # リリースノートの本文を作成
       - name: Create release note body
         id: release_note_body
         run: |
-          echo "release_note_body=$(echo \
-            ${{ steps.pr_title.outputs.formatted_pr_title }} \
-            ${{ steps.changes.outputs.changes }} \
-            | sed 's/\\"//g' | sed 's/["“]//g')" >> $GITHUB_OUTPUT
-
+          release_note_body="${{ steps.pr_title.outputs.formatted_pr_title }} ${{ steps.changes.outputs.changes }}"
+          # 文字列から不要な文字を削除
+          release_note_body=$(echo "$release_note_body" | sed 's/\\"//g' | sed 's/["“]//g')
+          echo "release_note_body=$release_note_body" >> $GITHUB_OUTPUT
 
       # タグを切り、リリースノートを作成する
       # PRのラベルに応じてカテゴライズする場合は、使用先のリポジトリで下記を定義する
