@@ -65,15 +65,15 @@ int getCursorPosition(int *rows, int *cols) {
 
   while (i < sizeof(buf) - 1) {
     if (read(STDIN_FILENO, &buf[i], 1) != 1)break;
-    if(buf[i]=='R') break;
+    if (buf[i] == 'R') break;
     i++;
   }
   buf[i] = '\0';
 
   printf("\r\n&buf[1]: '%s'\r\n", &buf[1]);
 
-  if(buf[0] != '\x1b' || buf[1] != '[') return -1;
-  if(sscanf(&buf[2], "%d;%d", rows, cols) != 2) return -1;
+  if (buf[0] != '\x1b' || buf[1] != '[') return -1;
+  if (sscanf(&buf[2], "%d;%d", rows, cols) != 2) return -1;
 
   return 0;
 }
@@ -97,7 +97,7 @@ void editorDrawRows(void) {
   for (y = 0; y < E.screenrows; y++) {
     write(STDOUT_FILENO, "~", 1);
 
-    if(y < E.screenrows - 1){
+    if (y < E.screenrows - 1) {
       write(STDOUT_FILENO, "\r\n", 2);
     }
   }
