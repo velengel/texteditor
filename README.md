@@ -1,4 +1,4 @@
-This repository is intended for study and learning purposes. aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+This repository is intended for study and learning purposes.
 
 https://viewsourcecode.org/snaptoken/kilo/index.html
 
@@ -7,5 +7,3 @@ https://viewsourcecode.org/snaptoken/kilo/index.html
 make
 ./kilo kilo.c
 ```
-
-
