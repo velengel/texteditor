@@ -6,8 +6,8 @@
 
 #include <ctype.h>
 #include <errno.h>
-#include <stdio.h>
 #include <stdarg.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/ioctl.h>
@@ -20,7 +20,7 @@
 #define KILO_VERSION "0.0.1"
 #define KILO_TAB_STOP 8
 
-#define CTRL_KEY(k) ((k) & 0x1f)
+#define CTRL_KEY(k) ((k)&0x1f)
 
 enum ArrowKey {
   ARROW_LEFT = 1000,
@@ -107,6 +107,7 @@ int editorReadKey(void) {
         if (read(STDIN_FILENO, &seq[2], 1) != 1) return '\x1b';
         if (seq[2] == '~') {
           switch (seq[1]) {
+            // clang-format off
             case '1': return HOME_KEY;
             case '3': return DEL_KEY;
             case '4': return END_KEY;
@@ -132,6 +133,7 @@ int editorReadKey(void) {
         case 'F': return END_KEY;
       }
     }
+    // clang-format on
 
     return '\x1b';
   } else {
@@ -143,10 +145,10 @@ int getCursorPosition(int *rows, int *cols) {
   char buf[32];
   unsigned int i = 0;
 
-  if (write(STDOUT_FILENO, "\x1b[6n", 4) != 4)return -1;
+  if (write(STDOUT_FILENO, "\x1b[6n", 4) != 4) return -1;
 
   while (i < sizeof(buf) - 1) {
-    if (read(STDIN_FILENO, &buf[i], 1) != 1)break;
+    if (read(STDIN_FILENO, &buf[i], 1) != 1) break;
     if (buf[i] == 'R') break;
     i++;
   }
@@ -179,8 +181,7 @@ int editorRowCxToRx(erow *row, int cx) {
   int rx = 0;
   int j;
   for (j = 0; j < cx; j++) {
-    if (row->chars[j] == '\t')
-      rx += (KILO_TAB_STOP - 1) - (rx % KILO_TAB_STOP);
+    if (row->chars[j] == '\t') rx += (KILO_TAB_STOP - 1) - (rx % KILO_TAB_STOP);
     rx++;
   }
   return rx;
@@ -193,7 +194,7 @@ void editorUpdateRow(erow *row) {
     if (row->chars[j] == '\t') tabs++;
 
   free(row->render);
-  row->render = malloc(row->size + tabs*(KILO_TAB_STOP - 1) + 1);
+  row->render = malloc(row->size + tabs * (KILO_TAB_STOP - 1) + 1);
 
   int idx = 0;
   for (j = 0; j < row->size; j++) {
@@ -237,8 +238,8 @@ void editorOpen(char *filename) {
   size_t linecap = 0;
   ssize_t linelen;
   while ((linelen = getline(&line, &linecap, fp)) != -1) {
-    while (linelen > 0 && ( line[linelen-1] == '\n' ||
-                            line[linelen-1] == '\r'))
+    while (linelen > 0 &&
+           (line[linelen - 1] == '\n' || line[linelen - 1] == '\r'))
       linelen--;
     editorAppendRow(line, linelen);
   }
@@ -246,14 +247,14 @@ void editorOpen(char *filename) {
   fclose(fp);
 }
 
-
 /*** MARK: append buffer ***/
 struct abuf {
   char *b;
   int len;
 };
 
-#define ABUF_INIT {NULL, 0}
+#define ABUF_INIT \
+  { NULL, 0 }
 
 void abAppend(struct abuf *ab, const char *s, int len) {
   char *new = realloc(ab->b, ab->len + len);
@@ -264,9 +265,7 @@ void abAppend(struct abuf *ab, const char *s, int len) {
   ab->len += len;
 }
 
-void abFree(struct abuf *ab) {
-  free(ab->b);
-}
+void abFree(struct abuf *ab) { free(ab->b); }
 
 /*** MARK: output ***/
 
@@ -298,10 +297,10 @@ void editorDrawRows(struct abuf *ab) {
   for (y = 0; y < E.screenrows; y++) {
     int filerow = y + E.rowoff;
     if (filerow >= E.numrows) {
-      if (E.numrows == 0 && y == E.screenrows/3) {
+      if (E.numrows == 0 && y == E.screenrows / 3) {
         char welcome[80];
         int welcomelen = snprintf(welcome, sizeof(welcome),
-          "Kilo editor -- version %s", KILO_VERSION);
+                                  "Kilo editor -- version %s", KILO_VERSION);
         if (welcomelen > E.screencols) welcomelen = E.screencols;
         int padding = (E.screencols - welcomelen) / 2;
         if (padding) {
@@ -329,9 +328,8 @@ void editorDrawStatusBar(struct abuf *ab) {
   abAppend(ab, "\x1b[7m", 4);  // switch inverted color
   char status[80], rstatus[80];
   int len = snprintf(status, sizeof(status), "%.20s - %d lines",
-    E.filename ? E.filename : "[No Name]", E.numrows);
-  int rlen = snprintf(rstatus, sizeof(rstatus), "%d/%d",
-    E.cy + 1, E.numrows);
+                     E.filename ? E.filename : "[No Name]", E.numrows);
+  int rlen = snprintf(rstatus, sizeof(rstatus), "%d/%d", E.cy + 1, E.numrows);
   if (len > E.screencols) len = E.screencols;
   abAppend(ab, status, len);
   while (len < E.screencols) {
@@ -369,7 +367,7 @@ void editorRefreshScreen(void) {
 
   char buf[32];
   snprintf(buf, sizeof(buf), "\x1b[%d;%dH", (E.cy - E.rowoff) + 1,
-                                            (E.rx - E.coloff) + 1);
+           (E.rx - E.coloff) + 1);
   abAppend(&ab, buf, strlen(buf));
 
   abAppend(&ab, "\x1b[?25h", 6);
@@ -439,7 +437,7 @@ void editorProcessKeypress(void) {
     case HOME_KEY:
       E.cx = 0;
       break;
-
+    // clang-format off
     case END_KEY:
       if (E.cy < E.numrows)
         E.cx = E.row[E.cy].size;
@@ -461,6 +459,7 @@ void editorProcessKeypress(void) {
         }
         break;
       }
+      // clang-format on
 
     case ARROW_UP:
     case ARROW_DOWN:

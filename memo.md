@@ -20,6 +20,7 @@ python3 -m venv myenv
 ```bash
 #!/bin/bash
 find . -name "*.c" -o -name "*.h" | xargs cpplint
+find . -name "*.c" -o -name "*.h" | xargs clang-format --dry-run --Werror
 ```
 
 ## 2つ以上前のコミットにfixupつけてコミットする
