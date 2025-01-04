@@ -18,6 +18,9 @@ jobs:
         sudo apt-get update
         sudo apt-get install clang-format
 
+    - name: Check clang-format version
+      run: clang-format --version   # clang-formatのバージョンを確認
+
     - name: Run clang-format dry run
       run: |
         find . -name "*.c" -o -name "*.h" | xargs clang-format --dry-run --Werror --style=file
