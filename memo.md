@@ -21,3 +21,11 @@ python3 -m venv myenv
 #!/bin/bash
 find . -name "*.c" -o -name "*.h" | xargs cpplint
 ```
+
+## 2つ以上前のコミットにfixupつけてコミットする
+```bash
+# commit hash 確認
+git log --oneline
+# fixup(例)
+git commit -m --fixup=70a2852
+```
