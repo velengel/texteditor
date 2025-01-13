@@ -55,3 +55,4 @@ kilo
 .vscode
 myenv
 *.patch
+kilo_src.c

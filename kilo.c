@@ -96,7 +96,7 @@ void enableRawMode(void) {
   raw.c_cc[VMIN] = 0;
   raw.c_cc[VTIME] = 1;
 
-  if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw) == -1) die("tcseattr");
+  if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw) == -1) die("tcsetattr");
 }
 
 int editorReadKey(void) {
@@ -175,7 +175,7 @@ int getCursorPosition(int *rows, int *cols) {
 int getWindowSize(int *rows, int *cols) {
   struct winsize ws;
 
-  if (1 || ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws) == -1 || ws.ws_col == 0) {
+  if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws) == -1 || ws.ws_col == 0) {
     if (write(STDOUT_FILENO, "\x1b[999C\x1b[999B", 12) != 12) return -1;
     return getCursorPosition(rows, cols);
   } else {
@@ -186,6 +186,16 @@ int getWindowSize(int *rows, int *cols) {
 }
 
 /*** MARK: row operations ***/
+
+int editorRowCxToRx(erow *row, int cx) {
+  int rx = 0;
+  int j;
+  for (j = 0; j < cx; j++) {
+    if (row->chars[j] == '\t') rx += (KILO_TAB_STOP - 1) - (rx % KILO_TAB_STOP);
+    rx++;
+  }
+  return rx;
+}
 
 int editorRowRxToCx(erow *row, int rx) {
   int cur_rx = 0;
@@ -198,16 +208,6 @@ int editorRowRxToCx(erow *row, int rx) {
     if (cur_rx > rx) return cx;
   }
   return cx;
-}
-
-int editorRowCxToRx(erow *row, int cx) {
-  int rx = 0;
-  int j;
-  for (j = 0; j < cx; j++) {
-    if (row->chars[j] == '\t') rx += (KILO_TAB_STOP - 1) - (rx % KILO_TAB_STOP);
-    rx++;
-  }
-  return rx;
 }
 
 void editorUpdateRow(erow *row) {
@@ -265,7 +265,7 @@ void editorDelRow(int at) {
 }
 
 void editorRowInsertChar(erow *row, int at, int c) {
-  if (at < 0 || at < row->size) at = row->size;
+  if (at < 0 || at > row->size) at = row->size;
   row->chars = realloc(row->chars, row->size + 2);
   memmove(&row->chars[at + 1], &row->chars[at], row->size - at + 1);
   row->size++;
@@ -531,7 +531,17 @@ void editorDrawRows(struct abuf *ab) {
       int len = E.row[filerow].rsize - E.coloff;
       if (len < 0) len = 0;
       if (len > E.screencols) len = E.screencols;
-      abAppend(ab, &E.row[filerow].render[E.coloff], len);
+      char *c = &E.row[filerow].render[E.coloff];
+      int j;
+      for (j = 0; j < len; j++) {
+        if (isdigit(c[j])) {
+          abAppend(ab, "\x1b[31m", 5);
+          abAppend(ab, &c[j], 1);
+          abAppend(ab, "\x1b[39m", 5);
+        } else {
+          abAppend(ab, &c[j], 1);
+        }
+      }
     }
 
     abAppend(ab, "\x1b[K", 3);
