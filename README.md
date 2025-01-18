@@ -7,3 +7,6 @@ https://viewsourcecode.org/snaptoken/kilo/index.html
 make
 ./kilo kilo.c
 ```
+
+## demo
+![](./demo.gif)
